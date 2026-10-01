@@ -1,68 +1,225 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="ESTUDOS CAO">
-<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#111827">
 <title>ESTUDOS CAO</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Arial,sans-serif;background:#f5f5f7;color:#111}
-main{max-width:720px;margin:auto;padding:18px 14px 40px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-h1{font-size:28px;margin:0}.sub{color:#6b7280;font-size:13px;margin-top:4px}
-.card{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:16px;margin-bottom:12px}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.label{font-size:12px;color:#6b7280}.big{font-size:27px;font-weight:750;margin-top:5px}
-.bar{height:9px;background:#e5e7eb;border-radius:20px;overflow:hidden;margin-top:12px}.fill{height:100%;background:#111;border-radius:20px}
-button{border:1px solid #d1d5db;background:#fff;border-radius:12px;padding:11px 14px;font-size:14px}
-.next{border-left:5px solid #111}.section{margin-top:18px}.daytitle{display:flex;justify-content:space-between;align-items:center;font-weight:750;margin-bottom:8px}
-.lesson{padding:13px;border:1px solid;border-radius:14px;margin:8px 0}.green{background:#dcfce7;border-color:#86efac;color:#166534}.blue{background:#dbeafe;border-color:#93c5fd;color:#1e40af}
-.lesson label{display:flex;gap:10px;align-items:flex-start}.lesson input{width:21px;height:21px;margin-top:1px;accent-color:currentColor}.kind{font-size:11px;font-weight:800}.name{font-weight:700;margin-top:3px}.time{font-size:12px;opacity:.75;margin-top:4px}
-.done{opacity:.5}.daybar{height:7px;background:#e5e7eb;border-radius:20px;overflow:hidden}.daybar i{display:block;height:100%;background:#111}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+:root{
+  --bg:#f3f4f6;--card:#fff;--text:#111827;--muted:#6b7280;
+  --green:#16a34a;--green-bg:#dcfce7;--blue:#2563eb;--blue-bg:#dbeafe;
+  --done:#166534;--border:#e5e7eb;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text)}
+header{background:#111827;color:white;padding:28px 18px 22px;border-radius:0 0 24px 24px}
+h1{margin:0;font-size:28px} .sub{margin-top:5px;color:#d1d5db}
+.container{max-width:760px;margin:auto;padding:14px 14px 40px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:-2px}
+.stat{background:var(--card);border-radius:16px;padding:14px;box-shadow:0 2px 10px #0000000b}
+.label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase}
+.value{font-size:21px;font-weight:800;margin-top:4px}
+.progress{height:10px;background:#e5e7eb;border-radius:20px;overflow:hidden;margin:14px 0 20px}
+.bar{height:100%;background:#16a34a;width:0%;transition:.25s}
+.day{margin:18px 0}
+.day-title{font-size:20px;font-weight:800;margin-bottom:9px}
+.day-meta{font-size:12px;color:var(--muted);margin-bottom:8px}
+.block{border-radius:18px;padding:14px;margin:10px 0;border:1px solid transparent}
+.obras{background:var(--green-bg);border-color:#bbf7d0}
+.leis{background:var(--blue-bg);border-color:#bfdbfe}
+.block h3{margin:0 0 9px;font-size:15px}
+.item{display:flex;gap:10px;align-items:flex-start;background:#ffffffcc;border-radius:13px;padding:10px;margin:7px 0}
+.item.done{opacity:.62}
+.item input{width:22px;height:22px;flex:none;margin-top:1px;accent-color:#16a34a}
+.info{min-width:0;flex:1}
+.name{font-weight:700;font-size:14px;line-height:1.25}
+.duration{font-size:12px;color:var(--muted);margin-top:3px}
+.next{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px;margin:18px 0}
+.next strong{display:block;margin-bottom:5px}
+button{border:0;border-radius:12px;padding:10px 14px;background:#111827;color:white;font-weight:700;margin-top:6px}
+.controls{display:flex;justify-content:flex-end}
+.small{font-size:11px;color:var(--muted);margin-top:10px}
+.control{font-size:11px;font-weight:800;color:#6b7280;text-transform:uppercase;margin-bottom:6px}
+@media(min-width:600px){.stats{grid-template-columns:repeat(4,1fr)}}
 </style>
 </head>
-<body><main>
-<div class="top"><div><h1>📚 ESTUDOS CAO</h1><div class="sub">Seu cronograma de estudos</div></div></div>
-<div class="card stats"><div><div class="label">PROGRESSO GERAL</div><div id="pct" class="big">0%</div><div id="done" class="sub">0min00s estudadas</div></div><div><div class="label">TEMPO RESTANTE</div><div id="rest" class="big">26h49min06s</div><div id="count" class="sub">0 vídeos concluídos</div></div></div>
-<div class="card"><div class="label">PROGRESSO</div><div class="bar"><div id="overall" class="fill" style="width:0"></div></div></div>
-<div id="next" class="card next"><div class="label">PRÓXIMO CONTEÚDO</div><div id="nextName" style="font-weight:750;margin-top:5px">01/10 — Gerenciando com as Pessoas</div><div id="nextInfo" class="sub">26min09s · 🟩 OBRAS</div></div>
-<div class="actions"><button id="nextBtn">▶ Ir para o próximo</button><button id="clearBtn">Limpar marcações</button></div>
-<div id="days"></div>
+<body>
+<header>
+  <div class="container" style="padding:0">
+    <h1>📚 ESTUDOS CAO</h1>
+    <div class="sub">Seu cronograma de estudos</div>
+  </div>
+</header>
+
+<main class="container">
+  <section class="stats">
+    <div class="stat"><div class="label">Progresso geral</div><div class="value" id="percent">0%</div></div>
+    <div class="stat"><div class="label">Tempo estudado</div><div class="value" id="studied">0h00min</div></div>
+    <div class="stat"><div class="label">Tempo restante</div><div class="value" id="remaining">0h00min</div></div>
+    <div class="stat"><div class="label">Vídeos concluídos</div><div class="value" id="doneCount">0</div></div>
+  </section>
+  <div class="progress"><div class="bar" id="bar"></div></div>
+  <div class="next" id="nextBox"></div>
+  <div id="schedule"></div>
+  <div class="controls"><button onclick="resetProgress()">↺ Resetar progresso</button></div>
+  <div class="small">O progresso fica salvo neste iPhone/navegador.</div>
 </main>
+
 <script>
-const D=[
-["29/09","TERÇA","CONTROLE","Integridade — Aula única",3500,1],["30/09","QUARTA","CONTROLE","Metas — Aula única",4312,1],
-["01/10","QUINTA","MANHÃ · OBRAS","Gerenciando com as Pessoas — aula principal",1569],["01/10","QUINTA","MANHÃ · OBRAS","Liderança Primordial — aula principal",2191],["01/10","QUINTA","NOITE · LEIS","Diretriz de Segurança — aula única",2820],["01/10","QUINTA","NOITE · LEIS","Cyber PM — Parte 1",2423],["01/10","QUINTA","NOITE · LEIS","Cyber PM — Parte 2",1763],
-["02/10","SEXTA","MANHÃ · OBRAS","Pipeline de Liderança — aula principal",2344],["02/10","SEXTA","MANHÃ · OBRAS","Polícia e Futuro — Parte 1",2700],["02/10","SEXTA","NOITE · LEIS","MAGIN 2026 — Novo Manual de Gestão de Imóveis — aula única",5839],
-["05/10","SEGUNDA","MANHÃ · OBRAS","Polícia e Futuro — Parte 2",1270],["05/10","SEGUNDA","MANHÃ · OBRAS","Polícia e Futuro — Parte 3",1498],["05/10","SEGUNDA","MANHÃ · OBRAS","Empatia Assertiva — Parte 1",1087],["05/10","SEGUNDA","NOITE · LEIS","Portfólio — Vídeo 1",5683],
-["06/10","TERÇA","MANHÃ · OBRAS","Empatia Assertiva — Parte 2",1366],["06/10","TERÇA","MANHÃ · OBRAS","Empatia Assertiva — Parte 3",1240],["06/10","TERÇA","MANHÃ · OBRAS","Empatia Assertiva — Parte Final",865],["06/10","TERÇA","MANHÃ · OBRAS","Gestão da Qualidade — Parte 1",1439],["06/10","TERÇA","NOITE · LEIS","Portfólio — Vídeo 2",3675],["06/10","TERÇA","NOITE · LEIS","Portfólio — Vídeo 3",3783],
-["07/10","QUARTA","MANHÃ · OBRAS","Gestão da Qualidade — Parte 2",1077],["07/10","QUARTA","MANHÃ · OBRAS","Gestão da Qualidade — Parte 3",2149],["07/10","QUARTA","15H · LEIS","GDO — Vídeo 1",6597],["07/10","QUARTA","15H · LEIS","GDO — Vídeo 2",4466],["07/10","QUARTA","15H · LEIS","GDO — Vídeo 3",3170],["07/10","QUARTA","NOITE · LEIS","Licitações — Aula 01 / Parte I",4806],
-["08/10","QUINTA","MANHÃ · OBRAS","Gestão da Qualidade — Parte 4",1410],["08/10","QUINTA","MANHÃ · OBRAS","Gestão de Riscos — Parte 1",1827],["08/10","QUINTA","NOITE · LEIS","Licitações — Aula 02 / Parte II",4177],["08/10","QUINTA","NOITE · LEIS","Licitações e Contratos — Parte I — 1º tempo",4094],
-["09/10","SEXTA","MANHÃ · OBRAS","Gestão de Riscos — Parte 2",1929],["09/10","SEXTA","NOITE · LEIS","Licitações e Contratos — Parte I — 2º tempo",3655],["09/10","SEXTA","NOITE · LEIS","Licitações e Contratos — Parte II — 1º tempo",2793],["09/10","SEXTA","NOITE · LEIS","Licitações e Contratos — Parte II — 2º tempo",3029]
+const D = [
+{date:"29/09",dow:"terça-feira",blocks:[
+ {type:"control",title:"CONTROLE — LEIS",items:[["Integridade — Aula única",3500,true]]}
+]},
+{date:"30/09",dow:"quarta-feira",blocks:[
+ {type:"control",title:"CONTROLE — LEIS",items:[["Metas / AADP — Aula única",4312,true]]}
+]},
+{date:"01/10",dow:"quinta-feira",blocks:[
+ {type:"obras",title:"MANHÃ — OBRAS",items:[
+  ["Gerenciando com as Pessoas — Aula principal",1569],
+  ["Liderança Primordial — Aula principal",2191]
+ ]},
+ {type:"leis",title:"NOITE — LEIS",items:[
+  ["Diretriz de Segurança",2820],
+  ["Cyber PM — Parte 1",2423],
+  ["Cyber PM — Parte 2",1763]
+ ]}
+]},
+{date:"02/10",dow:"sexta-feira",blocks:[
+ {type:"obras",title:"MANHÃ — OBRAS",items:[
+  ["Pipeline de Liderança — Aula principal",2344],
+  ["Polícia e Futuro — Parte 1",2700]
+ ]},
+ {type:"leis",title:"NOITE — LEIS",items:[
+  ["MAGIN 2026 — Novo Manual de Gestão de Imóveis",5839]
+ ]}
+]},
+{date:"05/10",dow:"segunda-feira",blocks:[
+ {type:"obras",title:"MANHÃ — OBRAS",items:[
+  ["Polícia e Futuro — Parte 2",1270],
+  ["Polícia e Futuro — Parte 3",1498],
+  ["Empatia Assertiva — Parte 1",1087]
+ ]},
+ {type:"leis",title:"NOITE — LEIS",items:[
+  ["Portfólio — Vídeo 1",5683]
+ ]}
+]},
+{date:"06/10",dow:"terça-feira",blocks:[
+ {type:"obras",title:"MANHÃ — OBRAS",items:[
+  ["Empatia Assertiva — Parte 2",1366],
+  ["Empatia Assertiva — Parte 3",1240],
+  ["Empatia Assertiva — Parte Final",865],
+  ["Gestão da Qualidade — Parte 1",1439]
+ ]},
+ {type:"leis",title:"NOITE — LEIS",items:[
+  ["Portfólio — Vídeo 2",3675],
+  ["Portfólio — Vídeo 3",3783]
+ ]}
+]},
+{date:"07/10",dow:"quarta-feira",blocks:[
+ {type:"obras",title:"MANHÃ — OBRAS",items:[
+  ["Gestão da Qualidade — Parte 2",1077],
+  ["Gestão da Qualidade — Parte 3",2149]
+ ]},
+ {type:"leis",title:"15:00 — EXTRA LEIS",items:[
+  ["GDO — Vídeo 1",6597],
+  ["GDO — Vídeo 2",4466],
+  ["GDO — Vídeo 3",3170]
+ ]},
+ {type:"leis",title:"NOITE — LEIS",items:[
+  ["Licitações — Aula 01 / Licitações – Parte I",4806]
+ ]}
+]},
+{date:"08/10",dow:"quinta-feira",blocks:[
+ {type:"obras",title:"MANHÃ — OBRAS",items:[
+  ["Gestão da Qualidade — Parte 4",1410],
+  ["Gestão de Riscos — Parte 1",1827]
+ ]},
+ {type:"leis",title:"NOITE — LEIS",items:[
+  ["Licitações — Aula 02 / Licitações – Parte II",4177],
+  ["Licitações e Contratos — Parte I — 1º tempo",4094]
+ ]}
+]},
+{date:"09/10",dow:"sexta-feira",blocks:[
+ {type:"obras",title:"MANHÃ — OBRAS",items:[
+  ["Gestão de Riscos — Parte 2",1929]
+ ]},
+ {type:"leis",title:"NOITE — LEIS",items:[
+  ["Licitações e Contratos — Parte I — 2º tempo",3655],
+  ["Licitações e Contratos — Parte II — 1º tempo",2793],
+  ["Licitações e Contratos — Parte II — 2º tempo",3029]
+ ]}
+]}
 ];
-const total=964?0:26*3600+49*60+6;
-const fmt=s=>{let h=Math.floor(s/3600);s%=3600;let m=Math.floor(s/60),z=s%60;return h?`${h}h${String(m).padStart(2,"0")}min${String(z).padStart(2,"0")}s`:`${m}min${String(z).padStart(2,"0")}s`};
-const days={};D.forEach((x,i)=>(days[x[0]]??=[]).push({...x,i}));
-const root=document.getElementById("days");
-Object.entries(days).forEach(([date,items])=>{
- let h=`<section class="section"><div class="daytitle"><span>${date} · ${items[0][1]}</span><span id="p${date.replace("/","")}">0%</span></div><div class="daybar"><i id="b${date.replace("/","")}" style="width:0"></i></div>`;
- items.forEach(x=>{let c=x[2].includes("MANHÃ")?"green":x[2].includes("LEIS")?"blue":"";h+=`<div class="lesson ${c}" data-row="${x.i}"><label><input type="checkbox" data-i="${x.i}" ${x[5]?"checked":""}><div><div class="kind">${x[2]}</div><div class="name">${x[3]}</div><div class="time">⏱ ${fmt(x[4])}</div></div></label></div>`});
- root.innerHTML+=h+"</section>";
-});
-function update(){
- let done=0,count=0;
- Object.entries(days).forEach(([date,items])=>{let d=0,t=0;items.forEach(x=>{t+=x[4];let cb=document.querySelector(`[data-i="${x.i}"]`),row=document.querySelector(`[data-row="${x.i}"]`);if(cb.checked){d+=x[4];count++;row.classList.add("done")}else row.classList.remove("done")});let p=d/t*100,k=date.replace("/","");document.getElementById("p"+k).textContent=p.toFixed(1)+"%";document.getElementById("b"+k).style.width=p+"%"});
- done=D.reduce((a,x,i)=>a+(document.querySelector(`[data-i="${i}"]`).checked?x[4]:0),0);
- let p=done/total*100;document.getElementById("pct").textContent=p.toFixed(1)+"%";document.getElementById("overall").style.width=p+"%";document.getElementById("done").textContent=fmt(done)+" estudadas";document.getElementById("rest").textContent=fmt(total-done);document.getElementById("count").textContent=count+" vídeos concluídos";
- let n=D.findIndex((x,i)=>!document.querySelector(`[data-i="${i}"]`).checked);
- if(n>=0){let x=D[n];document.getElementById("nextName").textContent=x[0]+" — "+x[3];document.getElementById("nextInfo").textContent=fmt(x[4])+" · "+(x[2].includes("MANHÃ")?"🟩 OBRAS":x[2].includes("LEIS")?"🟦 LEIS":"CONTROLE")}
- else {document.getElementById("nextName").textContent="🎉 Cronograma concluído!";document.getElementById("nextInfo").textContent="Todos os conteúdos foram marcados."}
+
+const KEY="estudos-cao-v2";
+let state=JSON.parse(localStorage.getItem(KEY)||"{}");
+const all=[];
+D.forEach(day=>day.blocks.forEach(block=>block.items.forEach(item=>all.push({
+  date:day.date,type:block.type,title:block.title,name:item[0],sec:item[1],control:!!item[2]
+}))));
+
+const total=all.reduce((s,x)=>s+x.sec,0);
+
+function fmt(sec){
+  sec=Math.max(0,Math.round(sec));
+  const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;
+  if(h) return `${h}h${String(m).padStart(2,"0")}min`;
+  return `${m}min${String(s).padStart(2,"0")}s`;
 }
-document.addEventListener("change",e=>{if(e.target.matches("input[type=checkbox]"))update()});
-document.getElementById("nextBtn").onclick=()=>{let n=D.findIndex((x,i)=>!document.querySelector(`[data-i="${i}"]`).checked);if(n>=0)document.querySelector(`[data-row="${n}"]`).scrollIntoView({behavior:"smooth",block:"center"})};
-document.getElementById("clearBtn").onclick=()=>{D.forEach((x,i)=>document.querySelector(`[data-i="${i}"]`).checked=!!x[5]);update()};
-update();
+function render(){
+  const done=all.reduce((s,x,i)=>s+(state[i]?x.sec:0),0);
+  const pct=total?done/total*100:0;
+  document.getElementById("percent").textContent=pct.toFixed(1)+"%";
+  document.getElementById("studied").textContent=fmt(done);
+  document.getElementById("remaining").textContent=fmt(total-done);
+  document.getElementById("doneCount").textContent=all.filter((x,i)=>state[i]).length;
+  document.getElementById("bar").style.width=Math.min(100,pct)+"%";
+
+  const ni=all.findIndex((x,i)=>!state[i]);
+  document.getElementById("nextBox").innerHTML=ni<0
+   ? "<strong>🎉 Cronograma concluído!</strong><span>Você finalizou todos os conteúdos previstos.</span>"
+   : `<strong>▶ Próximo conteúdo</strong><span>${all[ni].date} — ${all[ni].name} · ${fmt(all[ni].sec)}</span>`;
+
+  let idx=0, out="";
+  D.forEach(day=>{
+    let dayTotal=0,dayDone=0;
+    day.blocks.forEach(b=>b.items.forEach(it=>{dayTotal+=it[1]}));
+    day.blocks.forEach(b=>b.items.forEach(it=>{if(state[idx++])dayDone+=it[1]}));
+    out+=`<section class="day"><div class="day-title">${day.date} — ${day.dow}</div>
+      <div class="day-meta">${fmt(dayDone)} de ${fmt(dayTotal)} concluídos</div>`;
+    day.blocks.forEach(block=>{
+      const cls=block.type==="obras"?"obras":block.type==="leis"?"leis":"";
+      out+=`<div class="block ${cls}"><h3>${block.title}</h3>`;
+      block.items.forEach(it=>{
+        const i=all.findIndex(x=>x.date===day.date&&x.name===it[0]);
+        const checked=!!state[i];
+        out+=`<label class="item ${checked?"done":""}">
+          <input type="checkbox" ${checked?"checked":""} onchange="toggle(${i},this.checked)">
+          <div class="info"><div class="name">${it[0]}</div><div class="duration">${fmt(it[1])}${it[2]?" · concluído":" "}</div></div>
+        </label>`;
+      });
+      out+="</div>";
+    });
+    out+="</section>";
+  });
+  document.getElementById("schedule").innerHTML=out;
+}
+function toggle(i,v){
+  state[i]=v;
+  localStorage.setItem(KEY,JSON.stringify(state));
+  render();
+}
+function resetProgress(){
+  if(confirm("Resetar todo o progresso? Os controles de 29/09 e 30/09 continuarão concluídos.")){
+    state={0:true,1:true};
+    localStorage.setItem(KEY,JSON.stringify(state));
+    render();
+  }
+}
+render();
 </script>
-</body></html>
+</body>
+</html>
