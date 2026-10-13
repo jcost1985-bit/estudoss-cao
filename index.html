@@ -44,6 +44,37 @@ button{border:0;border-radius:12px;padding:10px 14px;background:#111827;color:wh
 .small{font-size:11px;color:var(--muted);margin-top:10px}
 .control{font-size:11px;font-weight:800;color:#6b7280;text-transform:uppercase;margin-bottom:6px}
 @media(min-width:600px){.stats{grid-template-columns:repeat(4,1fr)}}
+
+.navtabs{display:flex;gap:8px;max-width:760px;margin:14px auto 0;padding:0 14px}
+.navtabs button{flex:1;margin:0;background:#e5e7eb;color:#374151;border:1px solid #d1d5db;padding:12px 8px}
+.navtabs button.active{background:#111827;color:#fff;border-color:#111827}
+.panel-hidden{display:none!important}
+.sim-intro{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px;margin:14px 0}
+.sim-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}
+.sim-stat{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px}
+.sim-stat .label{font-size:10px}
+.sim-stat .value{font-size:20px}
+.sim-block{border-radius:16px;padding:13px;margin:10px 0;border:1px solid transparent}
+.sim-block.law{background:var(--blue-bg);border-color:#bfdbfe}
+.sim-block.work{background:var(--green-bg);border-color:#bbf7d0}
+.sim-block.general{background:#fef3c7;border-color:#fde68a}
+.sim-block h3{margin:0 0 4px;font-size:15px}
+.sim-time{font-size:12px;font-weight:800;color:#4b5563;margin-bottom:8px}
+.sim-row{background:#ffffffd9;border-radius:12px;padding:10px;margin:7px 0}
+.sim-row.done{opacity:.68}
+.sim-row-top{display:flex;align-items:flex-start;gap:9px}
+.sim-row input[type=checkbox]{width:21px;height:21px;flex:none;accent-color:#16a34a;margin-top:1px}
+.sim-title{font-size:14px;font-weight:750;line-height:1.3;flex:1}
+.sim-details{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:9px 0 0 30px}
+.sim-details label{font-size:11px;color:#4b5563;font-weight:700}
+.sim-details input{display:block;width:100%;margin-top:4px;padding:9px;border:1px solid #d1d5db;border-radius:9px;background:white;font-size:16px;color:#111827}
+.sim-score{font-size:12px;font-weight:800;margin:7px 0 0 30px;color:#374151}
+.sim-day{margin:20px 0}
+.sim-day-title{font-size:19px;font-weight:850;margin-bottom:4px}
+.sim-day-meta{font-size:12px;color:var(--muted);margin-bottom:8px}
+.sim-legend{font-size:12px;color:#4b5563;line-height:1.5}
+@media(min-width:600px){.sim-stats{grid-template-columns:repeat(4,1fr)}}
+
 </style>
 </head>
 <body>
@@ -54,7 +85,11 @@ button{border:0;border-radius:12px;padding:10px 14px;background:#111827;color:wh
   </div>
 </header>
 
-<main class="container">
+<nav class="navtabs" aria-label="Painéis">
+  <button id="tabStudies" class="active" onclick="showPanel('studies')">📚 ESTUDOS CAO</button>
+  <button id="tabSim" onclick="showPanel('sim')">📝 SIMULADOS CAO</button>
+</nav>
+<main class="container" id="studyPanel">
   <section class="stats">
     <div class="stat"><div class="label">Progresso geral</div><div class="value" id="percent">0%</div></div>
     <div class="stat"><div class="label">Tempo estudado</div><div class="value" id="studied">0h00min</div></div>
@@ -68,7 +103,36 @@ button{border:0;border-radius:12px;padding:10px 14px;background:#111827;color:wh
   <div class="small">O progresso fica salvo neste iPhone/navegador.</div>
 </main>
 
+<main class="container panel-hidden" id="simPanel">
+  <div class="sim-intro">
+    <h2 style="margin:0 0 7px;font-size:21px">📝 SIMULADOS CAO</h2>
+    <div class="sim-legend"><b>Período:</b> 13 a 30 de outubro de 2026 · somente dias úteis.<br>
+    Cada bloco dura <b>45 minutos</b>: 30 minutos para responder + 15 minutos para corrigir imediatamente.<br>
+    <b>LEIS:</b> azul · <b>OBRAS:</b> verde · <b>Geral:</b> amarelo.</div>
+  </div>
+  <section class="sim-stats">
+    <div class="sim-stat"><div class="label">Progresso dos simulados</div><div class="value" id="simPercent">0%</div></div>
+    <div class="sim-stat"><div class="label">Simulados concluídos</div><div class="value" id="simDone">0/238</div></div>
+    <div class="sim-stat"><div class="label">Questões respondidas</div><div class="value" id="simQuestions">0</div></div>
+    <div class="sim-stat"><div class="label">Aproveitamento geral</div><div class="value" id="simAccuracy">—</div></div>
+  </section>
+  <div class="progress"><div class="bar" id="simBar"></div></div>
+  <div class="next" id="simNext"></div>
+  <div id="simSchedule"></div>
+  <div class="controls"><button onclick="resetSimProgress()">↺ Resetar progresso dos simulados</button></div>
+  <div class="small">Os resultados dos simulados são salvos separadamente dos estudos, neste iPhone/navegador.</div>
+</main>
+
 <script>
+function showPanel(which){
+  const studies=which==='studies';
+  document.getElementById('studyPanel').classList.toggle('panel-hidden',!studies);
+  document.getElementById('simPanel').classList.toggle('panel-hidden',studies);
+  document.getElementById('tabStudies').classList.toggle('active',studies);
+  document.getElementById('tabSim').classList.toggle('active',!studies);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
 const D = [
 {date:"29/09",dow:"terça-feira",blocks:[
  {type:"control",title:"CONTROLE — LEIS",items:[["Integridade — Aula única",3500,true]]}
@@ -220,6 +284,89 @@ function resetProgress(){
   }
 }
 render();
+</script>
+
+<script>
+const SIM_KEY='simulados-cao-v1';
+let simState={};
+try{simState=JSON.parse(localStorage.getItem(SIM_KEY)||'{}')}catch(e){simState={}}
+const lawSubjects=[
+ 'Licitações','Diretriz de Segurança','Integridade','Metas','Portfólio','GDO','Cyber PM','MAGIN 2026 — Manual de Gestão de Imóveis'
+];
+const workSubjects=[
+ 'Empatia Assertiva','Polícia e Futuro','Gestão da Qualidade','Gerenciando com as Pessoas','Pipeline de Liderança','Liderança Primordial','Gestão de Riscos'
+];
+const simDays=[
+ ['13/10','terça-feira'],['14/10','quarta-feira'],['15/10','quinta-feira'],['16/10','sexta-feira'],
+ ['19/10','segunda-feira'],['20/10','terça-feira'],['21/10','quarta-feira'],['22/10','quinta-feira'],['23/10','sexta-feira'],
+ ['26/10','segunda-feira'],['27/10','terça-feira'],['28/10','quarta-feira'],['29/10','quinta-feira'],['30/10','sexta-feira']
+];
+function minsToTime(m){return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
+function plusMin(t,delta){const [h,m]=t.split(':').map(Number);return minsToTime(h*60+m+delta)}
+function makeSimPlan(){
+ const out=[];
+ const lawTimes=['07:30','08:00','08:30','09:00','09:30','10:00','10:30','11:00'];
+ const workTimes=['13:30','14:00','14:30','15:00','15:30','16:00','16:30'];
+ simDays.forEach((day,di)=>{
+  const blocks=[];
+  for(let j=0;j<8;j++){
+   const subject=lawSubjects[(di+j)%lawSubjects.length];
+   blocks.push({id:day[0]+'-law-'+j,kind:'law',time:lawTimes[j],title:'LEIS — '+subject,subject,detail:'Simulado individual · 30 min'});
+  }
+  blocks.push({id:day[0]+'-full-law',kind:'law',time:'11:30',title:'SIMULADO GERAL — 8 LEIS',subject:'Todas as 8 disciplinas de LEIS',detail:'Simulado integrado'});
+  for(let j=0;j<7;j++){
+   const subject=workSubjects[(di+j)%workSubjects.length];
+   blocks.push({id:day[0]+'-work-'+j,kind:'work',time:workTimes[j],title:'OBRAS — '+subject,subject,detail:'Simulado individual · 30 min'});
+  }
+  blocks.push({id:day[0]+'-full-work',kind:'work',time:'17:00',title:'SIMULADO GERAL — 7 OBRAS',subject:'Todas as 7 disciplinas de OBRAS',detail:'Simulado integrado'});
+  blocks.push({id:day[0]+'-general',kind:'general',time:'20:00',title:'SIMULADO GERAL CAO',subject:'LEIS + OBRAS',detail:'Simulado integrado de todas as disciplinas'});
+  blocks.sort((a,b)=>a.time.localeCompare(b.time));
+  out.push({date:day[0],dow:day[1],blocks});
+ });
+ return out;
+}
+const SIM_PLAN=makeSimPlan();
+const SIM_ALL=SIM_PLAN.flatMap(d=>d.blocks);
+function saveSim(){localStorage.setItem(SIM_KEY,JSON.stringify(simState))}
+function simRender(){
+ let completed=0,totalQuestions=0,totalCorrect=0,scoredCount=0;
+ SIM_ALL.forEach(b=>{
+  const r=simState[b.id]||{};
+  if(r.done)completed++;
+  const q=Number(r.questions),c=Number(r.correct);
+  if(r.questions!==undefined&&r.questions!==''&&Number.isFinite(q)&&q>0&&r.correct!==undefined&&r.correct!==''&&Number.isFinite(c)&&c>=0&&c<=q){totalQuestions+=q;totalCorrect+=c;scoredCount++}
+ });
+ const pct=SIM_ALL.length?completed/SIM_ALL.length*100:0;
+ document.getElementById('simPercent').textContent=pct.toFixed(1)+'%';
+ document.getElementById('simDone').textContent=completed+'/'+SIM_ALL.length;
+ document.getElementById('simQuestions').textContent=totalQuestions;
+ document.getElementById('simAccuracy').textContent=scoredCount?(totalCorrect/totalQuestions*100).toFixed(1)+'%':'—';
+ document.getElementById('simBar').style.width=pct+'%';
+ const next=SIM_ALL.find(b=>!(simState[b.id]||{}).done);
+ document.getElementById('simNext').innerHTML=next?`<strong>▶ Próximo simulado pendente</strong><span>${next.time} · ${next.date} — ${next.title}</span>`:'<strong>🎉 Todos os simulados foram concluídos!</strong>';
+ let out='';
+ SIM_PLAN.forEach(day=>{
+  const dayDone=day.blocks.filter(b=>(simState[b.id]||{}).done).length;
+  out+=`<section class="sim-day"><div class="sim-day-title">${day.date} — ${day.dow}</div><div class="sim-day-meta">${dayDone} de ${day.blocks.length} simulados concluídos</div>`;
+  day.blocks.forEach(b=>{
+   const r=simState[b.id]||{};const checked=!!r.done;
+   const cls=b.kind==='law'?'law':b.kind==='work'?'work':'general';
+   const q=r.questions??'';const c=r.correct??'';
+   let score='';
+   if(q!==''&&c!==''&&Number(q)>0&&Number(c)>=0&&Number(c)<=Number(q))score=`Aproveitamento: ${(Number(c)/Number(q)*100).toFixed(1)}% (${c}/${q})`;
+   out+=`<div class="sim-block ${cls}"><h3>${b.title}</h3><div class="sim-time">${b.time}–${plusMin(b.time,45)} · ${b.detail}</div>
+    <div class="sim-row ${checked?'done':''}"><div class="sim-row-top"><input aria-label="Marcar simulado concluído" type="checkbox" ${checked?'checked':''} onchange="simToggle('${b.id}',this.checked)"><div class="sim-title">${b.subject}</div></div>
+    <div class="sim-details"><label>Questões respondidas<input type="number" min="0" step="1" inputmode="numeric" value="${q}" onchange="simNumber('${b.id}','questions',this.value)" placeholder="Ex.: 20"></label><label>Acertos<input type="number" min="0" step="1" inputmode="numeric" value="${c}" onchange="simNumber('${b.id}','correct',this.value)" placeholder="Ex.: 16"></label></div>
+    <div class="sim-score">${score||'Registre questões e acertos para calcular o aproveitamento.'}</div></div></div>`;
+  });
+  out+='</section>';
+ });
+ document.getElementById('simSchedule').innerHTML=out;
+}
+function simToggle(id,v){simState[id]=simState[id]||{};simState[id].done=v;saveSim();simRender()}
+function simNumber(id,key,value){simState[id]=simState[id]||{};if(value==='')delete simState[id][key];else simState[id][key]=Math.max(0,Math.floor(Number(value)||0));saveSim();simRender()}
+function resetSimProgress(){if(confirm('Apagar os checkboxes e resultados de todos os simulados? O painel ESTUDOS CAO não será alterado.')){simState={};saveSim();simRender()}}
+simRender();
 </script>
 </body>
 </html>
