@@ -50,7 +50,7 @@ button{border:0;border-radius:12px;padding:10px 14px;background:#111827;color:wh
 .navtabs button.active{background:#111827;color:#fff;border-color:#111827}
 .panel-hidden{display:none!important}
 .sim-intro{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px;margin:14px 0}
-.sim-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}
+.sim-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}.sim-section-title{font-size:16px;font-weight:850;margin:18px 0 8px}.sim-day-picker{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;margin:14px 0}.sim-day-picker select{flex:1;min-width:0;border:1px solid #d1d5db;border-radius:10px;background:#fff;padding:11px;font-size:15px;color:#111827}.sim-day-picker button{margin:0;padding:11px 13px;white-space:nowrap}.sim-day-picker button:disabled{opacity:.35}
 .sim-stat{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px}
 .sim-stat .label{font-size:10px}
 .sim-stat .value{font-size:20px}
@@ -107,12 +107,26 @@ button{border:0;border-radius:12px;padding:10px 14px;background:#111827;color:wh
   <div class="sim-intro">
     <h2 style="margin:0 0 7px;font-size:21px">📝 SIMULADOS CAO</h2>
     <div class="sim-legend"><b>Período:</b> 13 a 30 de outubro de 2026 · somente dias úteis.<br>
-    Cada bloco dura <b>45 minutos</b>: 30 minutos para responder + 15 minutos para corrigir imediatamente.<br>
+    Cada simulado individual tem 30 minutos para responder. Os simulados gerais ficam às 11:30 (LEIS), 17:00 (OBRAS) e 20:00 (geral).<br>
     <b>LEIS:</b> azul · <b>OBRAS:</b> verde · <b>Geral:</b> amarelo.</div>
   </div>
+  <div class="sim-day-picker">
+    <button id="simPrevDay" onclick="changeSimDay(-1)" aria-label="Dia anterior">‹</button>
+    <select id="simDaySelect" onchange="selectSimDay(this.value)" aria-label="Selecionar dia dos simulados"></select>
+    <button id="simNextDay" onclick="changeSimDay(1)" aria-label="Próximo dia">›</button>
+  </div>
+  <div class="sim-section-title">📅 Produtividade do dia</div>
   <section class="sim-stats">
-    <div class="sim-stat"><div class="label">Progresso dos simulados</div><div class="value" id="simPercent">0%</div></div>
-    <div class="sim-stat"><div class="label">Simulados concluídos</div><div class="value" id="simDone">0/238</div></div>
+    <div class="sim-stat"><div class="label">Progresso do dia</div><div class="value" id="dayPercent">0%</div></div>
+    <div class="sim-stat"><div class="label">Simulados concluídos hoje</div><div class="value" id="dayDone">0/18</div></div>
+    <div class="sim-stat"><div class="label">Questões do dia</div><div class="value" id="dayQuestions">0</div></div>
+    <div class="sim-stat"><div class="label">Aproveitamento do dia</div><div class="value" id="dayAccuracy">—</div></div>
+  </section>
+  <div class="progress"><div class="bar" id="dayBar"></div></div>
+  <div class="sim-section-title">📈 Produtividade geral — período completo</div>
+  <section class="sim-stats">
+    <div class="sim-stat"><div class="label">Progresso geral</div><div class="value" id="simPercent">0%</div></div>
+    <div class="sim-stat"><div class="label">Simulados concluídos</div><div class="value" id="simDone">0/252</div></div>
     <div class="sim-stat"><div class="label">Questões respondidas</div><div class="value" id="simQuestions">0</div></div>
     <div class="sim-stat"><div class="label">Aproveitamento geral</div><div class="value" id="simAccuracy">—</div></div>
   </section>
@@ -328,44 +342,69 @@ function makeSimPlan(){
 const SIM_PLAN=makeSimPlan();
 const SIM_ALL=SIM_PLAN.flatMap(d=>d.blocks);
 function saveSim(){localStorage.setItem(SIM_KEY,JSON.stringify(simState))}
+let selectedSimDay=0;
+function fillSimDayPicker(){
+ const sel=document.getElementById('simDaySelect');
+ sel.innerHTML=SIM_PLAN.map((d,i)=>`<option value="${i}">${d.date} — ${d.dow}</option>`).join('');
+ sel.value=String(selectedSimDay);
+}
+function selectSimDay(value){selectedSimDay=Math.max(0,Math.min(SIM_PLAN.length-1,Number(value)||0));simRender()}
+function changeSimDay(delta){selectedSimDay=Math.max(0,Math.min(SIM_PLAN.length-1,selectedSimDay+delta));simRender()}
 function simRender(){
- let completed=0,totalQuestions=0,totalCorrect=0,scoredCount=0;
+ const totals={all:{done:0,questions:0,correct:0,scored:0},day:{done:0,questions:0,correct:0,scored:0}};
+ const selected=SIM_PLAN[selectedSimDay];
  SIM_ALL.forEach(b=>{
   const r=simState[b.id]||{};
-  if(r.done)completed++;
+  const bucket=selected.blocks.some(x=>x.id===b.id)?'day':'';
+  if(r.done)totals.all.done++;
   const q=Number(r.questions),c=Number(r.correct);
-  if(r.questions!==undefined&&r.questions!==''&&Number.isFinite(q)&&q>0&&r.correct!==undefined&&r.correct!==''&&Number.isFinite(c)&&c>=0&&c<=q){totalQuestions+=q;totalCorrect+=c;scoredCount++}
+  if(r.questions!==undefined&&r.questions!==''&&Number.isFinite(q)&&q>0&&r.correct!==undefined&&r.correct!==''&&Number.isFinite(c)&&c>=0&&c<=q){
+   totals.all.questions+=q;totals.all.correct+=c;totals.all.scored++;
+  }
+  if(bucket==='day'){
+   if(r.done)totals.day.done++;
+   if(r.questions!==undefined&&r.questions!==''&&Number.isFinite(q)&&q>0&&r.correct!==undefined&&r.correct!==''&&Number.isFinite(c)&&c>=0&&c<=q){
+    totals.day.questions+=q;totals.day.correct+=c;totals.day.scored++;
+   }
+  }
  });
- const pct=SIM_ALL.length?completed/SIM_ALL.length*100:0;
+ const pct=SIM_ALL.length?totals.all.done/SIM_ALL.length*100:0;
+ const dpct=selected.blocks.length?totals.day.done/selected.blocks.length*100:0;
  document.getElementById('simPercent').textContent=pct.toFixed(1)+'%';
- document.getElementById('simDone').textContent=completed+'/'+SIM_ALL.length;
- document.getElementById('simQuestions').textContent=totalQuestions;
- document.getElementById('simAccuracy').textContent=scoredCount?(totalCorrect/totalQuestions*100).toFixed(1)+'%':'—';
+ document.getElementById('simDone').textContent=totals.all.done+'/'+SIM_ALL.length;
+ document.getElementById('simQuestions').textContent=totals.all.questions;
+ document.getElementById('simAccuracy').textContent=totals.all.questions?(totals.all.correct/totals.all.questions*100).toFixed(1)+'%':'—';
  document.getElementById('simBar').style.width=pct+'%';
+ document.getElementById('dayPercent').textContent=dpct.toFixed(1)+'%';
+ document.getElementById('dayDone').textContent=totals.day.done+'/'+selected.blocks.length;
+ document.getElementById('dayQuestions').textContent=totals.day.questions;
+ document.getElementById('dayAccuracy').textContent=totals.day.questions?(totals.day.correct/totals.day.questions*100).toFixed(1)+'%':'—';
+ document.getElementById('dayBar').style.width=dpct+'%';
+ document.getElementById('simDaySelect').value=String(selectedSimDay);
+ document.getElementById('simPrevDay').disabled=selectedSimDay===0;
+ document.getElementById('simNextDay').disabled=selectedSimDay===SIM_PLAN.length-1;
  const next=SIM_ALL.find(b=>!(simState[b.id]||{}).done);
- document.getElementById('simNext').innerHTML=next?`<strong>▶ Próximo simulado pendente</strong><span>${next.time} · ${next.date} — ${next.title}</span>`:'<strong>🎉 Todos os simulados foram concluídos!</strong>';
+ document.getElementById('simNext').innerHTML=next?`<strong>▶ Próximo simulado pendente no período</strong><span>${next.time} · ${next.date} — ${next.title}</span>`:'<strong>🎉 Todos os simulados foram concluídos!</strong>';
  let out='';
- SIM_PLAN.forEach(day=>{
-  const dayDone=day.blocks.filter(b=>(simState[b.id]||{}).done).length;
-  out+=`<section class="sim-day"><div class="sim-day-title">${day.date} — ${day.dow}</div><div class="sim-day-meta">${dayDone} de ${day.blocks.length} simulados concluídos</div>`;
-  day.blocks.forEach(b=>{
-   const r=simState[b.id]||{};const checked=!!r.done;
-   const cls=b.kind==='law'?'law':b.kind==='work'?'work':'general';
-   const q=r.questions??'';const c=r.correct??'';
-   let score='';
-   if(q!==''&&c!==''&&Number(q)>0&&Number(c)>=0&&Number(c)<=Number(q))score=`Aproveitamento: ${(Number(c)/Number(q)*100).toFixed(1)}% (${c}/${q})`;
-   out+=`<div class="sim-block ${cls}"><h3>${b.title}</h3><div class="sim-time">${b.time}–${plusMin(b.time,45)} · ${b.detail}</div>
-    <div class="sim-row ${checked?'done':''}"><div class="sim-row-top"><input aria-label="Marcar simulado concluído" type="checkbox" ${checked?'checked':''} onchange="simToggle('${b.id}',this.checked)"><div class="sim-title">${b.subject}</div></div>
-    <div class="sim-details"><label>Questões respondidas<input type="number" min="0" step="1" inputmode="numeric" value="${q}" onchange="simNumber('${b.id}','questions',this.value)" placeholder="Ex.: 20"></label><label>Acertos<input type="number" min="0" step="1" inputmode="numeric" value="${c}" onchange="simNumber('${b.id}','correct',this.value)" placeholder="Ex.: 16"></label></div>
-    <div class="sim-score">${score||'Registre questões e acertos para calcular o aproveitamento.'}</div></div></div>`;
-  });
-  out+='</section>';
+ out+=`<section class="sim-day"><div class="sim-day-title">${selected.date} — ${selected.dow}</div><div class="sim-day-meta">${totals.day.done} de ${selected.blocks.length} simulados concluídos neste dia</div>`;
+ selected.blocks.forEach(b=>{
+  const r=simState[b.id]||{};const checked=!!r.done;
+  const cls=b.kind==='law'?'law':b.kind==='work'?'work':'general';
+  const q=r.questions??'';const c=r.correct??'';
+  let score='';
+  if(q!==''&&c!==''&&Number(q)>0&&Number(c)>=0&&Number(c)<=Number(q))score=`Aproveitamento: ${(Number(c)/Number(q)*100).toFixed(1)}% (${c}/${q})`;
+  out+=`<div class="sim-block ${cls}"><h3>${b.title}</h3><div class="sim-time">${b.time} · ${b.detail}</div>
+   <div class="sim-row ${checked?'done':''}"><div class="sim-row-top"><input aria-label="Marcar simulado concluído" type="checkbox" ${checked?'checked':''} onchange="simToggle('${b.id}',this.checked)"><div class="sim-title">${b.subject}</div></div>
+   <div class="sim-details"><label>Questões respondidas<input type="number" min="0" step="1" inputmode="numeric" value="${q}" onchange="simNumber('${b.id}','questions',this.value)" placeholder="Ex.: 20"></label><label>Acertos<input type="number" min="0" step="1" inputmode="numeric" value="${c}" onchange="simNumber('${b.id}','correct',this.value)" placeholder="Ex.: 16"></label></div>
+   <div class="sim-score">${score||'Registre questões e acertos para calcular o aproveitamento.'}</div></div></div>`;
  });
+ out+='</section>';
  document.getElementById('simSchedule').innerHTML=out;
 }
 function simToggle(id,v){simState[id]=simState[id]||{};simState[id].done=v;saveSim();simRender()}
 function simNumber(id,key,value){simState[id]=simState[id]||{};if(value==='')delete simState[id][key];else simState[id][key]=Math.max(0,Math.floor(Number(value)||0));saveSim();simRender()}
 function resetSimProgress(){if(confirm('Apagar os checkboxes e resultados de todos os simulados? O painel ESTUDOS CAO não será alterado.')){simState={};saveSim();simRender()}}
+fillSimDayPicker();
 simRender();
 </script>
 </body>
